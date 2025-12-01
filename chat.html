@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Web App Prototype</title>
+    <link rel="stylesheet" href="chat.css"> </head>
+<body>
+    <div id="chat-container">
+        <header id="chat-header">
+            <h2>💬 프로토타입 채팅방</h2>
+            <div id="user-info">접속: **나** & **팀원**</div>
+        </header>
+
+        <main id="message-list">
+            <div class="message my-message">
+                <div class="message-content">안녕하세요!</div>
+                <div class="message-time">10:00</div>
+            </div>
+            <div class="message their-message">
+                <div class="message-content">네, 반갑습니다.</div>
+                <div class="message-time">10:01</div>
+            </div>
+        </main>
+
+        <footer id="chat-footer">
+            <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+            <button id="send-button">전송</button>
+        </footer>
+    </div>
+
+    <script src="chat.js"></script> 
+   </body>
+</html>
