@@ -1,6 +1,8 @@
 {
   "dependencies": {
-    "json-server": "^1.0.0-beta.3"
-  },
-  "type":"module" 
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "json-server": "^1.0.0-beta.3",
+    "socket.io": "^4.8.1"
+  }
 }

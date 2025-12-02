@@ -1,5 +1,8 @@
-// chat.js 상단에 추가 (서버 URL은 실제 서버 주소로 변경)
-const socket = io('http://localhost:3000'); // 예시: Node.js 서버가 3000번 포트에서 실행 중이라고 가정
+// chat.js 상단에 추가 (기존 코드 앞에)
+const socket = io('http://localhost:4000'); // 서버 주소와 포트 연결
+let currentRoomId = null; // 현재 참여하고 있는 채팅방 ID
+let isMatching = false; // 매칭 중인지 확인하는 플래그
+// (MY_USER_ID, OTHER_USER_ID 상수는 그대로 사용)
 
 // 필요한 DOM 요소 가져오기
 const messageInput = document.getElementById('message-input');
@@ -54,25 +57,28 @@ function scrollToBottom() {
 /**
  * 메시지 전송 처리 함수
  */
+// chat.js 파일 내 sendMessage 함수 수정
+
 function sendMessage() {
     const text = messageInput.value.trim();
 
-    if (text === '') {
-        return;
+    if (text === '' || !currentRoomId) { // 메시지가 비었거나 방에 없으면 전송 X
+        return; 
     }
 
-    // 1. 서버로 메시지 전송 (Socket.io 사용)
-    socket.emit('send_message', { 
-        text: text, 
-        senderId: MY_USER_ID, // 발신자 정보 전송
-        // 여기에 roomId 등 랜덤 채팅에 필요한 정보를 추가해야 합니다.
-    }); 
+    // 1. 내 메시지를 먼저 화면에 표시
+    createMessageElement(text, MY_USER_ID); //
 
-    // 2. 입력창 비우기
-    messageInput.value = '';
+    // 2. 서버로 메시지 전송 (emit)
+    socket.emit('message', {
+        roomId: currentRoomId, // 현재 방 ID
+        msg: text             // 메시지 내용
+    });
 
-    // 3. 스크롤 내리기 (내가 보낸 메시지를 바로 표시하므로)
+    // 3. 입력창 비우기 및 스크롤
+    messageInput.value = ''; 
     scrollToBottom();
+    
 }
 
 
@@ -96,11 +102,85 @@ createMessageElement('새로운 프로젝트를 시작합니다!', MY_USER_ID);
 createMessageElement('좋아요, 기능부터 빠르게 구현해 봅시다.', OTHER_USER_ID);
 scrollToBottom();
 
-socket.on('receive_message', (data) => {
-    // 상대방이 보낸 메시지인 경우에만 화면에 표시
-    if (data.senderId !== MY_USER_ID) {
-        createMessageElement(data.text, OTHER_USER_ID);
+// chat.js 파일 하단에 추가 (기존 이벤트 리스너 아래에)
+
+// --------------------------------------
+// 서버 소켓 이벤트 리스너
+// --------------------------------------
+
+// 1. 서버에 접속하자마자 매칭 요청
+socket.on('connect', () => {
+    console.log('서버에 연결되었습니다.');
+    if (!isMatching) {
+        // "전송" 버튼을 "매칭 시작" 버튼으로 재활용합니다.
+        sendButton.textContent = '매칭 시작';
+        sendButton.removeEventListener('click', sendMessage);
+        sendButton.addEventListener('click', startMatching);
+        
+        // 초기 테스트 메시지 제거 (옵션)
+        messageList.innerHTML = '';
         scrollToBottom();
     }
-    // 참고: 내가 보낸 메시지는 서버를 거쳐 다시 받지 않고, 전송 직후 로컬에서 바로 표시했습니다.
+});
+
+
+// 2. 매칭 시작 버튼 클릭 시 작동할 함수
+function startMatching() {
+    if (isMatching) return;
+    
+    isMatching = true;
+    sendButton.textContent = '매칭 중...';
+    sendButton.disabled = true;
+    
+    // 서버로 매칭 요청 이벤트 전송
+    socket.emit('join'); 
+    
+    createMessageElement('파트너를 찾고 있습니다. 잠시만 기다려주세요...', OTHER_USER_ID);
+    scrollToBottom();
+}
+
+
+// 3. 서버가 'waiting'을 보냈을 때 (나 혼자 대기 중)
+socket.on('waiting', () => {
+    sendButton.textContent = '매칭 중...';
+    sendButton.disabled = true;
+});
+
+
+// 4. 서버가 'matched'를 보냈을 때 (매칭 성공!)
+socket.on('matched', (roomId) => {
+    currentRoomId = roomId; // 채팅방 ID 저장
+    isMatching = false;
+    
+    // 버튼 기능을 원래대로 복구
+    sendButton.textContent = '전송';
+    sendButton.disabled = false;
+    sendButton.removeEventListener('click', startMatching);
+    sendButton.addEventListener('click', sendMessage); 
+    
+    // 화면에 알림 및 기존 메시지 지우기
+    messageList.innerHTML = ''; 
+    createMessageElement('🤝 파트너를 찾았습니다! 지금 바로 대화를 시작하세요.', OTHER_USER_ID);
+    scrollToBottom();
+});
+
+
+// 5. 서버로부터 메시지를 받았을 때
+socket.on('message', (msg) => {
+    // 상대방 메시지 표시
+    createMessageElement(msg, OTHER_USER_ID); 
+    scrollToBottom();
+});
+
+// 6. 상대방이 연결을 끊었을 때 (서버에서 구현 필요)
+socket.on('partner_disconnected', (msg) => {
+    currentRoomId = null;
+    isMatching = false;
+    createMessageElement(msg, OTHER_USER_ID);
+    
+    // 다시 매칭 상태로 복구
+    sendButton.textContent = '새 파트너 찾기';
+    sendButton.disabled = false;
+    sendButton.removeEventListener('click', sendMessage);
+    sendButton.addEventListener('click', startMatching); 
 });
