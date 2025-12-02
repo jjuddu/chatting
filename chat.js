@@ -1,3 +1,6 @@
+// chat.js 상단에 추가 (서버 URL은 실제 서버 주소로 변경)
+const socket = io('http://localhost:3000'); // 예시: Node.js 서버가 3000번 포트에서 실행 중이라고 가정
+
 // 필요한 DOM 요소 가져오기
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
@@ -55,27 +58,21 @@ function sendMessage() {
     const text = messageInput.value.trim();
 
     if (text === '') {
-        return; // 빈 메시지는 전송하지 않음
+        return;
     }
 
-    // 1. 내 메시지 전송 처리
-    createMessageElement(text, MY_USER_ID);
+    // 1. 서버로 메시지 전송 (Socket.io 사용)
+    socket.emit('send_message', { 
+        text: text, 
+        senderId: MY_USER_ID, // 발신자 정보 전송
+        // 여기에 roomId 등 랜덤 채팅에 필요한 정보를 추가해야 합니다.
+    }); 
 
     // 2. 입력창 비우기
     messageInput.value = '';
 
-    // 3. 스크롤 내리기
+    // 3. 스크롤 내리기 (내가 보낸 메시지를 바로 표시하므로)
     scrollToBottom();
-    
-    // 4. **서버 없는 환경을 위한 가상 응답 (나중에 지울 부분)**
-    setTimeout(() => {
-        if (text.includes('안녕')) {
-            createMessageElement('안녕하세요! 저는 AI 챗봇입니다.', OTHER_USER_ID);
-        } else {
-            createMessageElement('음... 뭐라고 대답할까요?', OTHER_USER_ID);
-        }
-        scrollToBottom();
-    }, 500); // 0.5초 후에 상대방 응답 시뮬레이션
 }
 
 
@@ -98,3 +95,12 @@ window.addEventListener('load', scrollToBottom);
 createMessageElement('새로운 프로젝트를 시작합니다!', MY_USER_ID);
 createMessageElement('좋아요, 기능부터 빠르게 구현해 봅시다.', OTHER_USER_ID);
 scrollToBottom();
+
+socket.on('receive_message', (data) => {
+    // 상대방이 보낸 메시지인 경우에만 화면에 표시
+    if (data.senderId !== MY_USER_ID) {
+        createMessageElement(data.text, OTHER_USER_ID);
+        scrollToBottom();
+    }
+    // 참고: 내가 보낸 메시지는 서버를 거쳐 다시 받지 않고, 전송 직후 로컬에서 바로 표시했습니다.
+});
