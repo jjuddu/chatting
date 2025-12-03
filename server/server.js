@@ -94,7 +94,10 @@ io.on('connection', (socket) => {
         // 'partner_disconnected' 이벤트는 chat.js에 이미 로직이 있습니다.
         socket.to(roomId).emit('partner_disconnected', '상대방이 채팅방을 나갔습니다.');
 
-        // 2) 이 소켓을 방에서 나가게 처리
+        // 2) activeRooms에서 해당 방 정보를 삭제
+        delete activeRooms[roomId];
+
+        // 3) 이 소켓을 방에서 나가게 처리
         socket.leave(roomId);
         
         console.log(`[나가기] 방 ${roomId}에서 유저 ${socket.id}가 나갔습니다.`);
