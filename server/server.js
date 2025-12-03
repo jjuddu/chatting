@@ -1,4 +1,7 @@
 // server.js
+
+let waitingUser = null;
+let activeRooms = {};
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -15,9 +18,6 @@ const io = socketIo(server, {
     }
 });
 
-// 대기열 변수
-let waitingUser = null;
-
 io.on('connection', (socket) => {
     console.log('누군가 접속했습니다:', socket.id);
 
@@ -26,7 +26,9 @@ io.on('connection', (socket) => {
         if (waitingUser) {
             // 대기자가 있으면 -> 매칭 성사!
             const roomId = waitingUser.id + '#' + socket.id;
-            
+
+            // 방 정보 저장 (activeRooms에 두 유저의 ID 저장)
+            activeRooms[roomId] = [socket.id, waitingUser.id];
             // 두 사람을 같은 방에 넣음
             socket.join(roomId);
             waitingUser.join(roomId);
@@ -57,6 +59,45 @@ io.on('connection', (socket) => {
         if (waitingUser === socket) {
             waitingUser = null;
         }
+        
+        // 1) 대기열에 있었다면 제거
+        // 'waitingUser'가 현재 끊긴 소켓이라면 null로 설정
+        if (waitingUser && waitingUser.id === socket.id) {
+            waitingUser = null;
+        }
+
+        // 2) 현재 채팅방에 있는지 확인하고 상대방에게 알림
+        // activeRooms 객체를 순회하며 끊긴 유저가 속한 방을 찾습니다.
+        for (const roomId in activeRooms) {
+            const participants = activeRooms[roomId];
+            
+            if (participants && participants.includes(socket.id)) {
+                
+                // 상대방 소켓 ID 찾기
+                const partnerId = participants.find(id => id !== socket.id);
+                
+                // 상대방에게 알림 전송 (partner_disconnected 이벤트 발생)
+                io.to(partnerId).emit('partner_disconnected', '상대방이 연결을 끊었습니다.');
+                
+                // 채팅방 정보 삭제 (다음 매칭을 위해 방 정보 초기화)
+                delete activeRooms[roomId];
+                console.log(`[강제 종료] 채팅방 종료 및 제거: ${roomId}`);
+                break; // 방을 찾았으니 루프 종료
+            }
+        }
+    });
+    // 4. 클라이언트가 채팅방을 나갔을 때
+    socket.on('leave_room', (data) => {
+        const roomId = data.roomId;
+        
+        // 1) 나를 제외한 방 안의 사람에게 알림 전송
+        // 'partner_disconnected' 이벤트는 chat.js에 이미 로직이 있습니다.
+        socket.to(roomId).emit('partner_disconnected', '상대방이 채팅방을 나갔습니다.');
+
+        // 2) 이 소켓을 방에서 나가게 처리
+        socket.leave(roomId);
+        
+        console.log(`[나가기] 방 ${roomId}에서 유저 ${socket.id}가 나갔습니다.`);
     });
 });
 

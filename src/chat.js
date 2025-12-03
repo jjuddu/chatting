@@ -103,11 +103,29 @@ scrollToBottom();
 
 // 나가기 버튼 누를 시 초기화면으로 복귀 및 상대방에게 연결 끊김 알리기
 exitButton.addEventListener('click', (e) => {
+    // 1. 서버에 'leave_room' 이벤트와 현재 방 ID를 전송 (핵심!)
+    if (currentRoomId) {
+        socket.emit('leave_room', { roomId: currentRoomId });
+    }
+    
+    // 2. 클라이언트 화면 및 상태 초기화
     currentRoomId = null;
     isMatching = false;
+    
+    // 헤더 상태를 초기 문구로 변경
+    userInfo.textContent = '누구와 만나게 될까나~'; 
+
+    // 버튼 상태 변경 및 함수 재연결
     sendButton.textContent = '매칭 시작';
+    sendButton.disabled = false;
     sendButton.removeEventListener('click', sendMessage);
     sendButton.addEventListener('click', startMatching);
+
+    // 메시지 목록 초기화 (화면 초기화)
+    messageList.innerHTML = ''; 
+    
+    // 초기 스크롤 위치 설정
+    scrollToBottom();
 })
 
 // --------------------------------------
