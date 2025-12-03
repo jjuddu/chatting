@@ -8,6 +8,7 @@ let isMatching = false; // 매칭 중인지 확인하는 플래그
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
 const messageList = document.getElementById('message-list');
+const userInfo = document.getElementById('user-info')
 
 // **가상의 사용자 ID 설정** (내가 보낸 메시지를 구분하기 위함)
 const MY_USER_ID = 'me';
@@ -129,6 +130,9 @@ function startMatching() {
     if (isMatching) return;
     
     isMatching = true;
+    // ⭐⭐ 추가된 부분: 헤더 업데이트 ⭐⭐
+    userInfo.textContent = '⏳ 파트너를 찾고 있습니다...'; 
+    
     sendButton.textContent = '매칭 중...';
     sendButton.disabled = true;
     
@@ -152,6 +156,7 @@ socket.on('matched', (roomId) => {
     currentRoomId = roomId; // 채팅방 ID 저장
     isMatching = false;
     
+    userInfo.textContent = '👌👈 성공!!'
     // 버튼 기능을 원래대로 복구
     sendButton.textContent = '전송';
     sendButton.disabled = false;
@@ -178,8 +183,9 @@ socket.on('partner_disconnected', (msg) => {
     isMatching = false;
     createMessageElement(msg, OTHER_USER_ID);
     
+    userInfoDiv.textContent = '⚠️ 상대방이 나갔습니다. "새 김이삼장 찾기"를 눌러주세요.';
     // 다시 매칭 상태로 복구
-    sendButton.textContent = '새 파트너 찾기';
+    sendButton.textContent = '새 김이삼장';
     sendButton.disabled = false;
     sendButton.removeEventListener('click', sendMessage);
     sendButton.addEventListener('click', startMatching); 

@@ -3,7 +3,8 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f0f2f5;
+    background-color: rgba(54, 27, 0, 0.9);
+    
     display: flex; /* 화면 중앙 정렬을 위해 Flexbox 사용 */
     justify-content: center;
     align-items: center;
@@ -26,8 +27,8 @@ body {
 /* 1. 헤더 스타일 */
 #chat-header {
     padding: 15px;
-    background-color: #00a8ff;
-    color: white;
+    background-color: #946303;
+    color: rgba(255, 255, 255, 0.962);
     text-align: center;
 }
 
@@ -37,6 +38,8 @@ body {
     padding: 10px;
     overflow-y: auto; /* 메시지가 많아지면 스크롤 가능하도록 설정 */
     background-color: #e5ddd5; /* 채팅 배경색 */
+    background-image:url(./img/bgImg.jpg);
+    background-size: cover;
 }
 
 /* 메시지 공통 스타일 */
