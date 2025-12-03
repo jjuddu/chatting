@@ -32,13 +32,33 @@ body {
     text-align: center;
 }
 
+#pretty {
+    display: flex;
+    justify-content: right;
+}
+
+#user-info {
+    margin-right: 95px;
+}
+
+#exit-button {
+    padding: 10px 15px;
+    background-color: #934f00;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    
+}
+
 /* 2. 메시지 목록 스타일 */
 #message-list {
     flex-grow: 1; /* 남은 공간을 모두 차지하도록 설정 */
     padding: 10px;
     overflow-y: auto; /* 메시지가 많아지면 스크롤 가능하도록 설정 */
     background-color: #e5ddd5; /* 채팅 배경색 */
-    background-image:url(./img/bgImg.jpg);
+    /* background-image:url(./img/bgImg.jpg); */
     background-size: cover;
 }
 
@@ -99,7 +119,7 @@ body {
 
 #send-button {
     padding: 10px 15px;
-    background-color: #00a8ff;
+    background-color: #934f00;
     color: white;
     border: none;
     border-radius: 20px;

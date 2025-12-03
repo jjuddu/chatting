@@ -9,6 +9,7 @@ const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
 const messageList = document.getElementById('message-list');
 const userInfo = document.getElementById('user-info')
+const exitButton = document.getElementById('exit-button')
 
 // **가상의 사용자 ID 설정** (내가 보낸 메시지를 구분하기 위함)
 const MY_USER_ID = 'me';
@@ -98,12 +99,16 @@ messageInput.addEventListener('keypress', (e) => {
 // 페이지 로드 시 스크롤을 가장 아래로 내림
 window.addEventListener('load', scrollToBottom);
 
-// 초기 테스트 메시지를 추가하고 싶다면 여기에 추가
-createMessageElement('새로운 프로젝트를 시작합니다!', MY_USER_ID);
-createMessageElement('좋아요, 기능부터 빠르게 구현해 봅시다.', OTHER_USER_ID);
 scrollToBottom();
 
-// chat.js 파일 하단에 추가 (기존 이벤트 리스너 아래에)
+// 나가기 버튼 누를 시 초기화면으로 복귀 및 상대방에게 연결 끊김 알리기
+exitButton.addEventListener('click', (e) => {
+    currentRoomId = null;
+    isMatching = false;
+    sendButton.textContent = '매칭 시작';
+    sendButton.removeEventListener('click', sendMessage);
+    sendButton.addEventListener('click', startMatching);
+})
 
 // --------------------------------------
 // 서버 소켓 이벤트 리스너
@@ -119,7 +124,7 @@ socket.on('connect', () => {
         sendButton.addEventListener('click', startMatching);
         
         // 초기 테스트 메시지 제거 (옵션)
-        messageList.innerHTML = '';
+        // messageList.innerHTML = '';
         scrollToBottom();
     }
 });
@@ -183,7 +188,7 @@ socket.on('partner_disconnected', (msg) => {
     isMatching = false;
     createMessageElement(msg, OTHER_USER_ID);
     
-    userInfoDiv.textContent = '⚠️ 상대방이 나갔습니다. "새 김이삼장 찾기"를 눌러주세요.';
+    userInfo.textContent = '⚠️ 상대방이 나갔습니다. "새 김이삼장 찾기"를 눌러주세요.';
     // 다시 매칭 상태로 복구
     sendButton.textContent = '새 김이삼장';
     sendButton.disabled = false;
