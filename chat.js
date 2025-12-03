@@ -1,5 +1,5 @@
 // chat.js 상단에 추가 (기존 코드 앞에)
-const socket = io('http://localhost:4000'); // 서버 주소와 포트 연결
+const socket = io('https://my-random-chat-server.onrender.com'); // 서버 주소와 포트 연결
 let currentRoomId = null; // 현재 참여하고 있는 채팅방 ID
 let isMatching = false; // 매칭 중인지 확인하는 플래그
 // (MY_USER_ID, OTHER_USER_ID 상수는 그대로 사용)
