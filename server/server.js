@@ -99,6 +99,11 @@ io.on('connection', (socket) => {
 
         // 3) 이 소켓을 방에서 나가게 처리
         socket.leave(roomId);
+
+        // ⭐ 혹시 이 유저가 나가기 전에 대기열에 있었을 수도 있으므로 제거 ⭐
+        if (waitingUser && waitingUser.id === socket.id) {
+            waitingUser = null;
+        }
         
         console.log(`[나가기] 방 ${roomId}에서 유저 ${socket.id}가 나갔습니다.`);
     });
