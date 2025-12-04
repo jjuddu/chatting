@@ -13,7 +13,7 @@ app.use(cors()); // 모든 접속 허용
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "https://kmsj-random-chat.netlify.app/", // "*"로 하면 모든 주소에서 접속 허용 (나중에 보안을 위해 수정 가능 => 수정함)
+        origin: "https://kmsj-random-chat.netlify.app", // "*"로 하면 모든 주소에서 접속 허용 (나중에 보안을 위해 수정 가능 => 수정함)
         methods: ["GET", "POST"]
     }
 });
